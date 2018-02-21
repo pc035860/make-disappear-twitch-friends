@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "Make Disappear Twitch Friends",
+  "version": "1.0.0",
+
+  "description":
+    "Make selected twitch friends disappear. (Don't worry, you are still friends) ",
+
+  "icons": {
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.twitch.tv/*"],
+      "js": [
+        "libs/jquery-3.3.1.slim.js",
+        "contentscript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "browser_action": {},
+
+  "web_accessible_resources": ["libs/jquery-3.3.1.slim.js"]
+}
