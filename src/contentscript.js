@@ -1,4 +1,6 @@
-/* global $ */
+/* global jQuery */
+
+const jq = jQuery.noConflict(true);
 
 const FRIEND_LIST = ['emerald33chang'];
 const FRIENDS = (function() {
@@ -42,73 +44,85 @@ const requestInterval = (function() {
   return self;
 })();
 
-function _getOnlineFriends() {
-  let content = null;
+(function($) {
+  function _getOnlineFriends() {
+    let content = null;
 
-  // 2018 react
-  content = $('.online-friends')[0];
+    // 2018 react
+    content = $('.online-friends')[0];
 
-  return content || null;
-}
+    return content || null;
+  }
 
-function getOnlineFriendsAsync(timeout) {
-  const delay = 100;
-  const startedAt = now();
-  return new Promise((resolve, reject) => {
-    const interval = setInterval(() => {
-      const content = _getOnlineFriends();
+  function getOnlineFriendsAsync(timeout) {
+    const delay = 100;
+    const startedAt = now();
 
-      if (content) {
-        clearInterval(interval);
-        resolve({ content });
-      }
+    return new Promise((resolve, reject) => {
+      const interval = setInterval(() => {
+        // const content = null;
+        const content = _getOnlineFriends();
 
-      const timePassed = now() - startedAt;
-      if (timePassed > timeout) {
-        clearInterval(interval);
-        reject();
-      }
-    }, delay);
-  });
-}
+        if (content) {
+          clearInterval(interval);
+          resolve({ content });
+        }
 
-function main() {
-  let $onlineFriendsContent;
-  let rafing = false;
-  const observer = new MutationObserver(onMutation);
-
-  getOnlineFriendsAsync(10000).then(({ content }) => {
-    $onlineFriendsContent = $(content);
-    observer.observe(content, {
-      attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true
+        const timePassed = now() - startedAt;
+        if (timePassed > timeout) {
+          clearInterval(interval);
+          reject();
+        }
+      }, delay);
     });
-  });
+  }
 
-  function onMutation(mutations) {
-    if (rafing) {
-      return;
+  function main() {
+    let $onlineFriendsContent;
+    let rafing = false;
+    const observer = new MutationObserver(onMutation);
+
+    getOnlineFriendsAsync(10000).then(({ content }) => {
+      $onlineFriendsContent = $(content);
+      observer.observe(content, {
+        attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
+
+      // init
+      onMutation([]);
+    });
+
+    function onMutation(mutations) {
+      if (rafing) {
+        return;
+      }
+
+      rafing = true;
+
+      _onMutation();
+      // requestAnimationFrame(_onMutation);
     }
 
-    rafing = true;
+    function _onMutation() {
+      $onlineFriendsContent.find('.side-nav-card__link').each((i, elm) => {
+        const $elm = $(elm);
+        const id = $elm.data('aName').replace('online-friend-', '');
 
-    requestAnimationFrame(_onMutation);
+        if (FRIENDS[id]) {
+          // use twitch's hide class
+          $elm
+            .closest('.side-nav-card')
+            .removeClass('tw-flex')
+            .addClass('tw-hide');
+        }
+      });
+
+      rafing = false;
+    }
   }
 
-  function _onMutation() {
-    $onlineFriendsContent.find('.side-nav-card__link').each((i, elm) => {
-      const $elm = $(elm);
-      const id = $elm.data('aName').replace('online-friend-', '');
-      if (FRIENDS[id]) {
-        // use twitch's hide class
-        $elm.closest('.side-nav-card').removeClass('tw-flex').addClass('tw-hide');
-      }
-    });
-
-    rafing = false;
-  }
-}
-
-main();
+  main();
+})(jq);
